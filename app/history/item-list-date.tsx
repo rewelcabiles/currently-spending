@@ -1,7 +1,7 @@
 'use client';
 import ItemList from "@/components/ui/item_list";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 export default function ItemListDate() {
     const searchParams = useSearchParams();
