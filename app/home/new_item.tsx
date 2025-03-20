@@ -1,4 +1,7 @@
 'use client';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
 import { createClient } from "@/utils/supabase/client";
 import { useState } from "react";
 
@@ -31,19 +34,19 @@ export default function NewSpentForm() {
         <>
             <div className="w-full">
                 <h2 className="font-bold text-2xl mb-4">What have you spent on Today?</h2>
-                <input autoFocus  className="p-2 w-full rounded-md" type="text" name="new_item" id="new_item" />
+                <Input className="border-2" autoFocus type="text" name="new_item" id="new_item" />
             </div>
             <div className="w-full">
                 <h2 className="font-bold text-2xl mb-4">How much was it?</h2>
-                <input className="p-2 w-full rounded-md" type="number" name="new_price" id="new_price" />
+                <Input className="border-2" type="number" name="new_price" id="new_price" />
             </div>
-            <button
+            
+            <Button
                 disabled={isAdding}
                 onClick={handleAddSpending}
-                className="bg-primary text-black p-2 rounded-md hover:bg-black hover:text-white transition-all duration-150"
             >
-                {isAdding ? "Adding.." : "This is what I wasted money on"}
-            </button>
+                {isAdding ? <Spinner size='sm'/> : "I wasted money on this"}
+            </Button>
         </>
     )
 }

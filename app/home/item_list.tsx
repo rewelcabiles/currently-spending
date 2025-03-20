@@ -1,13 +1,15 @@
 'use client';
+import RandomStringWithReplacement from "@/components/random-string-replacer";
+import AnimatedList from "@/components/ui/animated-list";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spending } from "@/utils/interfaces";
 import { createClient } from "@/utils/supabase/client";
+import { Dialog,  DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
+import { set } from "date-fns";
+import { Button } from "@/components/ui/button";
 
-interface Spending {
-    id: number;
-    created_at: string;
-    item: string;
-    price: number;
-}
+
 
 const sarcasmMap = [
     'Wow, you spent %amount% on that?',
@@ -19,68 +21,107 @@ const sarcasmMap = [
 export default function ItemList() {
     const supabase = createClient();
     const [spending, setSpending] = useState<Spending[]>([]);
-    const [total, setTotal] = useState(0);
-    const [sarcasm, setSarcasm] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [selectedItem, setSelectedItem] = useState<Spending | null>(null);
     
     const calculateTotal = () => {
         let total = 0;
         spending.forEach((item) => {
             total += item.price;
         });
-        setTotal(total);
+        return total;
     }
 
     useEffect(() => {
-        if (total === 0) {
-            setSarcasm('You have not spent anything yet.');
-        }
-        const randomSarcasm = sarcasmMap[Math.floor(Math.random() * sarcasmMap.length)];
-        setSarcasm(randomSarcasm.replace('%amount%', `$${total.toFixed(2)}`));
-    }, [total]);
-
-    useEffect(() => {
-        const fetchSpending = async () => {
-            const { data, error } = await supabase.from("spent").select();
+        const todayStartDate = new Date();
+        todayStartDate.setHours(0, 0, 0, 1);
+        supabase.from("spent").select().gte('created_at', todayStartDate.toISOString()).order('created_at', { ascending: false }).then(({ data, error }) => {
             if (error) {
                 console.error(error);
             } else {
                 setSpending(data as Spending[]);
-                calculateTotal();
+                setLoading(false);
             }
-        };
-        fetchSpending();
+        });
+    }, []);
+
+    useEffect(() => {
+
         const channel = supabase.channel("realtime spent").on('postgres_changes', {
             event: "INSERT", schema: "public", table: "spent"
         }, (payload) => {
-            console.log(payload.new);
-            setSpending([...spending, payload.new as Spending]);
-            calculateTotal();
+            setSpending([payload.new as Spending, ...spending ]);
+            console.log("New item added");
         }).subscribe();
-
         return () => {
             supabase.removeChannel(channel);
         }
-    }, [supabase, setSpending, spending, sarcasmMap, calculateTotal]);
+    }, [supabase, spending, setSpending]);
+
+    if (loading) {
+        return (
+            <div className="flex-1 w-full flex flex-col gap-4">
+                <Skeleton className="w-full h-[20px] rounded-full" />
+                <Skeleton className="w-[96] h-[20px] rounded-full" />
+            </div>
+        )
+    }
+
+    const handleItemClick = (item: Spending) => {
+        setSelectedItem(item);
+    }
 
     return (
-        <div className="flex-1 w-full flex flex-col gap-4">
-            <h2 className="font-bold text-2xl">
-                {sarcasm}
-            </h2>
-            {
-                spending.length > 0 &&
-                <pre className="text-xs font-mono p-3 rounded border overflow-auto">
+        <>
+            <div className="flex-1 w-full flex flex-col gap-4">
+                <RandomStringWithReplacement className="font-bold text-2xl text-wrap" templates={sarcasmMap} replacement={'$'+String(calculateTotal())} marker={'%amount%'} />
                 {
-                    [...spending].reverse().map((item) => (
-                        <div key={item.id} className="flex justify-between items-center p-2 border-b">
-                            <span className="text-gray-500">{new Date(item.created_at).toLocaleTimeString()}</span>
-                            <span className="font-medium">{item.item}</span>
-                            <span className="text-gray-500">${item.price.toFixed(2)}</span>
-                        </div>
-                    ))
+                    spending.length > 0 &&
+                    <AnimatedList items={spending} onItemClick={handleItemClick}/>
                 }
-                </pre>
-            }
-        </div>
+            </div>
+            <Dialog open={selectedItem !== null} onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedItem(null);
+                    }
+                    }}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>
+                                <div className="text-xl font-semibold text-white">
+                                    {selectedItem?.item}
+                                </div>
+                            </DialogTitle>
+                            <DialogDescription>
+                                    {
+                                    new Date(selectedItem?.created_at as string).toLocaleString()
+                                    } 
+                            </DialogDescription>
+                        </DialogHeader>
+                            <div className="flex flex-col gap-8">
+                                <div>
+                                {
+                                    new Intl.NumberFormat("en-US", {
+                                        style: "currency",
+                                        currency: "USD",
+                                    }).format(Number(selectedItem?.price))
+                                }
+                                </div>
+                                <Button size={'sm'} onClick={() => {
+                                    supabase.from("spent").delete().eq('id', selectedItem?.id).then(({ data, error }) => {
+                                        if (error) {
+                                            console.error(error);
+                                        } else {
+                                            setSpending(spending.filter((item) => item.id !== selectedItem?.id));
+                                            setSelectedItem(null);
+                                        }
+                                    });
+                                }}>
+                                    Delete
+                                </Button>
+                            </div>
+                    </DialogContent>
+                </Dialog>
+        </>
     );
 }
