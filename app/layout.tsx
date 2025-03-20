@@ -3,6 +3,7 @@ import HeaderAuth from "@/components/header-auth";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link";
 import "./globals.css";
 
@@ -47,6 +48,7 @@ export default function RootLayout({
               </nav>
               <div className="flex flex-col w-full md:w-[640px] p-5">
                 {children}
+                <Analytics />
               </div>
             </div>
           </main>
