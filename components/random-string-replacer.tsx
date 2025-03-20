@@ -22,6 +22,7 @@ export default function RandomStringWithReplacement({
 
     const randomIndex = Math.floor(Math.random() * templates.length)
     const template = templates[randomIndex]
+
     return template.replace(new RegExp(marker, "g"), replacement)
   }
 
@@ -30,7 +31,7 @@ export default function RandomStringWithReplacement({
   }, [templates, replacement, marker])
 
   return (
-        <h3 className={className}>{selectedString}</h3>
+        <h3 className="mb-4 text-2xl font-bold text-center h1">{selectedString}</h3>
   )
 }
 

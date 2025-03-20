@@ -4,8 +4,9 @@ import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/react"
-import Link from "next/link";
 import "./globals.css";
+import { SidebarProvider,  SidebarTrigger,  useSidebar } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/ui/app-sidebar"
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -36,23 +37,28 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col items-center">
+        <SidebarProvider className="flex flex-col flex-1">
+          <AppSidebar />
+          <main className="min-h-screen flex flex-col items-center flex-1">
             <div className="flex-1 w-full flex flex-col sm-gap-20 items-center">
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Currently Spending</Link>
+                    <SidebarTrigger />
+                    <div >Spending</div>
                   </div>
                   {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
-              <div className="flex flex-col w-full md:w-[640px] p-5">
+              <div className="flex flex-col w-full md:w-[640px] p-5 items-center">
                 {children}
                 <Analytics />
               </div>
             </div>
           </main>
+          </SidebarProvider>
         </ThemeProvider>
+
       </body>
     </html>
   );

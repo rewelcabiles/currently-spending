@@ -6,7 +6,6 @@ import { Spending } from "@/utils/interfaces";
 import { createClient } from "@/utils/supabase/client";
 import { Dialog,  DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-import { set } from "date-fns";
 import { Button } from "@/components/ui/button";
 
 
@@ -16,9 +15,29 @@ const sarcasmMap = [
     'I hope that %amount% was worth it.',
     'Really had nothing better to do with %amount%?',
     'I wish I had %amount%.',
-]
+    'That %amount% must have been burning a hole in your pocket.',
+    'You must be thrilled to have parted with %amount%.',
+    'I bet you can’t wait to spend more than %amount% next time.',
+    'What a fantastic use of %amount%.',
+    'I’m sure that %amount% will be remembered for years to come.',
+    'You’re really living the dream with that %amount% spent.',
+    'I hope the guilt of spending %amount% is worth it.',
+    'That %amount% is definitely not going to be missed.',
+    'You must have had a blast spending %amount%.',
+    'I’m sure it was a tough decision to spend %amount%.',
+    'That %amount% is clearly money well spent.',
+    'I bet you’re already planning how to spend the next %amount%.'
+];
 
-export default function ItemList() {
+
+const ItemListProps = {
+    start_date: new Date(),
+    end_date: new Date(),
+}
+
+export default function ItemList(
+    props: typeof ItemListProps
+) {
     const supabase = createClient();
     const [spending, setSpending] = useState<Spending[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,9 +52,13 @@ export default function ItemList() {
     }
 
     useEffect(() => {
-        const todayStartDate = new Date();
-        todayStartDate.setHours(0, 0, 0, 1);
-        supabase.from("spent").select().gte('created_at', todayStartDate.toISOString()).order('created_at', { ascending: false }).then(({ data, error }) => {
+        props.start_date.setHours(0, 0, 0, 1);
+        props.end_date.setHours(23, 59, 59, 999);
+        supabase.from("spent").select()
+            .gte('created_at', props.start_date.toISOString())
+            .lte('created_at', props.end_date.toISOString())
+            .order('created_at', { ascending: false })
+            .then(({ data, error }) => {
             if (error) {
                 console.error(error);
             } else {
@@ -43,7 +66,7 @@ export default function ItemList() {
                 setLoading(false);
             }
         });
-    }, []);
+    }, [props]);
 
     useEffect(() => {
 
@@ -74,10 +97,12 @@ export default function ItemList() {
     return (
         <>
             <div className="flex-1 w-full flex flex-col gap-4">
-                <RandomStringWithReplacement className="font-bold text-2xl text-wrap" templates={sarcasmMap} replacement={'$'+String(calculateTotal())} marker={'%amount%'} />
                 {
                     spending.length > 0 &&
+                    <>
+                    <RandomStringWithReplacement className="text-lg" templates={sarcasmMap} replacement={'$'+String(calculateTotal())} marker={'%amount%'} />
                     <AnimatedList items={spending} onItemClick={handleItemClick}/>
+                    </>
                 }
             </div>
             <Dialog open={selectedItem !== null} onOpenChange={(open) => {

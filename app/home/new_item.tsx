@@ -33,11 +33,11 @@ export default function NewSpentForm() {
     return (
         <>
             <div className="w-full">
-                <h2 className="font-bold text-2xl mb-4">What have you spent on Today?</h2>
+                <h2 className="font-bold text-2xl ">What have you spent on Today?</h2>
                 <Input className="border-2" autoFocus type="text" name="new_item" id="new_item" />
             </div>
             <div className="w-full">
-                <h2 className="font-bold text-2xl mb-4">How much was it?</h2>
+                <h2 className="font-bold text-2xl ">How much was it?</h2>
                 <Input className="border-2" type="number" name="new_price" id="new_price" />
             </div>
             

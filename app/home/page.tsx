@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import NewSpentForm from "./new_item";
-import ItemList from "./item_list";
+import ItemList from "../../components/ui/item_list";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -17,7 +17,8 @@ export default async function ProtectedPage() {
   return (
     <div className="flex-1 w-full flex flex-col gap-6 ">
       <NewSpentForm />
-      <ItemList />
+      <hr className="my-4"/>
+      <ItemList start_date={new Date()} end_date={new Date()}  />
     </div>
   );
 }
