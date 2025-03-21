@@ -5,19 +5,14 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/react"
 import "./globals.css";
-import { SidebarProvider,  SidebarTrigger,  useSidebar } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/ui/app-sidebar"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Suspense } from "react"
+import { SidebarProvider } from "@/components/ui/sidebar"
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
 
-const APP_NAME = "Spending";
-const APP_DEFAULT_TITLE = "Currently Spending";
-const APP_TITLE_TEMPLATE = "%s - Spending";
-const APP_DESCRIPTION = "Quick and easy way to track your spending!";
-  
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
@@ -46,7 +41,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
         <SidebarProvider className="flex flex-col flex-1">
-          <AppSidebar />
           <main className="min-h-screen flex flex-col items-center flex-1">
             <div className="flex-1 w-full flex flex-col sm-gap-20 items-center">
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
@@ -66,7 +60,7 @@ export default function RootLayout({
               </div>
             </div>
           </main>
-          </SidebarProvider>
+          </SidebarProvider>          
         </ThemeProvider>
 
       </body>

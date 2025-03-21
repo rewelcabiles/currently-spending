@@ -8,11 +8,8 @@ const withSerwist = withSerwistInit({
   swDest: "public/sw.js",
   reloadOnOnline: true,
   cacheOnNavigation: true,
+  additionalPrecacheEntries: [{ url: "/offline", revision: null }],
 });
-
-
-
-
 
 export default withSerwist({
 	experimental: {

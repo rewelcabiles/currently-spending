@@ -39,10 +39,12 @@ export function AppSidebar() {
     supabase.auth.getUser().then((response) => {
       if (response.data.user) {
         setUser(true);
+      } else {
+        setUser(false);
       }
     });
 
-  }, [])
+  }, [user])
 
   if (!user) {
     return <></>;
