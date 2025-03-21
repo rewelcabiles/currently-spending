@@ -29,7 +29,7 @@ export function DatePicker() {
     
     <>
       <pre className="text-sm text-gray-400">Select a date:</pre>
-      <input className="border-2 p-3 text-sm rounded-md bg-zinc-950"
+      <input className="border-2 p-3 text-sm rounded-md bg-zinc-950 w-full"
     type="date" value={date ? format(date, "yyyy-MM-dd") : ""} onChange={(e: any) => handleDateSelect(new Date(e.target.value))} />
     </>
   )

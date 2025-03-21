@@ -1,5 +1,6 @@
 import { Calendar, Home, Search, Settings } from "lucide-react"
-
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -10,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link";
 
 // Menu items.
 const items = [
@@ -20,12 +22,18 @@ const items = [
   },
   {
     title: "Past Days",
-    url: "/history",
+    url: "/home/history",
     icon: Calendar,
   },
 ]
 
-export function AppSidebar() {
+export async function AppSidebar() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return <></>;
+  }
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarContent>
@@ -36,10 +44,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

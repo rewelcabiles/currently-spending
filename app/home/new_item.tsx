@@ -14,7 +14,7 @@ export default function NewSpentForm() {
         setIsAdding(true);
         const new_item = (document.getElementById("new_item") as HTMLInputElement).value;
         const new_price = (document.getElementById("new_price") as HTMLInputElement).value;
-
+        
         if (!new_item || !new_price) {
             setIsAdding(false);
             alert("Please fill in both fields.");
@@ -28,16 +28,18 @@ export default function NewSpentForm() {
         } else {
             console.log(data);
         }
+        (document.getElementById("new_item") as HTMLInputElement).value = '';
+        (document.getElementById("new_price") as HTMLInputElement).value = '';
         setIsAdding(false);
       };
     return (
         <>
             <div className="w-full">
-                <h2 className="font-bold text-2xl ">What have you spent on Today?</h2>
+                <h2 className="font-bold text-xl sm:text-2xl ">What have you spent on Today?</h2>
                 <Input className="border-2" autoFocus type="text" name="new_item" id="new_item" />
             </div>
             <div className="w-full">
-                <h2 className="font-bold text-2xl ">How much was it?</h2>
+                <h2 className="font-bold text-xl sm:text-2xl ">How much was it?</h2>
                 <Input className="border-2" type="number" name="new_price" id="new_price" />
             </div>
             

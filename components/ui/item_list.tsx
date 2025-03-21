@@ -52,6 +52,7 @@ export default function ItemList(
     }
 
     useEffect(() => {
+        setLoading(true);
         props.start_date.setHours(0, 0, 0, 1);
         props.end_date.setHours(23, 59, 59, 999);
         supabase.from("spent").select()
@@ -110,7 +111,7 @@ export default function ItemList(
                         setSelectedItem(null);
                     }
                     }}>
-                    <DialogContent>
+                    <DialogContent className={'w-3/4'}>
                         <DialogHeader>
                             <DialogTitle>
                                 <div className="text-xl font-semibold text-white">
@@ -124,7 +125,7 @@ export default function ItemList(
                             </DialogDescription>
                         </DialogHeader>
                             <div className="flex flex-col gap-8">
-                                <div>
+                                <div className="text-center">
                                 {
                                     new Intl.NumberFormat("en-US", {
                                         style: "currency",
