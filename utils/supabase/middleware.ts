@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { SupabaseSafeSession } from "@/utils/supabase/supabase-safe-session"
 import { type NextRequest, NextResponse } from "next/server";
 
 export const updateSession = async (request: NextRequest) => {
@@ -37,6 +38,7 @@ export const updateSession = async (request: NextRequest) => {
 
     // This will refresh session if expired - required for Server Components
     // https://supabase.com/docs/guides/auth/server-side/nextjs
+
     const user = await supabase.auth.getUser();
 
     // protected routes

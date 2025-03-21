@@ -1,6 +1,7 @@
+'use client'
 import { Calendar, Home, Search, Settings } from "lucide-react"
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -10,8 +11,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar
 } from "@/components/ui/sidebar"
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 // Menu items.
 const items = [
@@ -27,13 +30,24 @@ const items = [
   },
 ]
 
-export async function AppSidebar() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+export function AppSidebar() {
+  const supabase = createClient();
+  const [user, setUser] = useState(false)
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    supabase.auth.getUser().then((response) => {
+      if (response.data.user) {
+        setUser(true);
+      }
+    });
+
+  }, [])
+
   if (!user) {
     return <></>;
   }
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarContent>
@@ -44,7 +58,7 @@ export async function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url}>
+                    <Link href={item.url} onClick={() => setOpenMobile(false)}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>

@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/react"
 import "./globals.css";
 import { SidebarProvider,  SidebarTrigger,  useSidebar } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/ui/app-sidebar"
-
+import { Suspense } from "react"
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
@@ -51,7 +51,9 @@ export default function RootLayout({
                 </div>
               </nav>
               <div className="flex flex-col w-full md:w-[640px] p-5 items-center">
-                {children}
+                <Suspense>
+                  {children}
+                </Suspense>
                 <Analytics />
               </div>
             </div>
