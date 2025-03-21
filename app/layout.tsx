@@ -8,14 +8,22 @@ import "./globals.css";
 import { SidebarProvider,  SidebarTrigger,  useSidebar } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/ui/app-sidebar"
 import { Suspense } from "react"
+
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
+
+const APP_NAME = "Spending";
+const APP_DEFAULT_TITLE = "Currently Spending";
+const APP_TITLE_TEMPLATE = "%s - Spending";
+const APP_DESCRIPTION = "Quick and easy way to track your spending!";
+  
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Currently Spending",
   description: "Quick and easy way to track your spending",
+  manifest: '/manifest.ts'
 };
 
 const geistSans = Geist({
