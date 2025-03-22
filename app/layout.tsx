@@ -8,6 +8,7 @@ import "./globals.css";
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Suspense } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import {Providers} from "./components/providers";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -34,13 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-        <SidebarProvider className="flex flex-col flex-1">
+        <Providers>
           <main className="min-h-screen flex flex-col items-center flex-1">
             <div className="flex-1 w-full flex flex-col sm-gap-20 items-center">
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
@@ -60,9 +55,7 @@ export default function RootLayout({
               </div>
             </div>
           </main>
-          </SidebarProvider>          
-        </ThemeProvider>
-
+        </Providers>
       </body>
     </html>
   );
