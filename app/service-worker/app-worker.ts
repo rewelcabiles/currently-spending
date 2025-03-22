@@ -1,5 +1,6 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
+import { BackgroundSyncPlugin, NetworkOnly, BackgroundSyncQueue } from "serwist";
 import { Serwist } from "serwist";
 
 // This declares the value of `injectionPoint` to TypeScript.
@@ -31,5 +32,40 @@ const serwist = new Serwist({
     ],
   },
 });
+
+const queue = new BackgroundSyncQueue("myQueueName1");
+const backgroundSync = new BackgroundSyncPlugin("myQueueName2", {
+  maxRetentionTime: 24 * 60, // Retry for a maximum of 24 Hours (specified in minutes)
+});
+
+self.addEventListener("fetch", (event) => {
+  // Add in your own criteria here to return early if this
+  // isn't a request that should use background sync.
+  if (event.request.method !== "POST") {
+    return;
+  }
+
+  const backgroundSync = async () => {
+    try {
+      const response = await fetch(event.request.clone());
+      return response;
+    } catch (error) {
+      await queue.pushRequest({ request: event.request });
+      return Response.error();
+    }
+  };
+
+  event.respondWith(backgroundSync());
+});
+
+
+serwist.registerCapture(
+  /\/api\/.*\/*.json/,
+  new NetworkOnly({
+    plugins: [backgroundSync],
+  }),
+  "POST",
+);
+
 
 serwist.addEventListeners();

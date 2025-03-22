@@ -1,5 +1,6 @@
 'use client';
 import { Button } from "@/components/ui/button";
+import { CategorySelector } from "@/app/home/category-selector";
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
 import { createClient } from "@/utils/supabase/client";
@@ -42,6 +43,7 @@ export default function NewSpentForm() {
                 <h2 className="font-bold text-xl sm:text-2xl ">How much was it?</h2>
                 <Input className="border-2" type="number" name="new_price" id="new_price" />
             </div>
+            <CategorySelector />
             
             <Button
                 disabled={isAdding}

@@ -64,12 +64,14 @@ export default function AnimatedList({
                 </span>
                 <span className="font-medium">{item.item}</span>
               </div>
-              <span
-                className={cn(
-                  "text-lg font-semibold tabular-nums")}
-              >
-                {formatCurrencyAction(Math.abs(item.price))}
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-muted-foreground">
+                  {item.category_id ?
+                    item.category_id.name : "Uncategorized"
+                  }
+                </span>
+                <span className="font-medium">{formatCurrencyAction(Math.abs(item.price))}</span>
+              </div>
             </div>
           </motion.div>
         ))}

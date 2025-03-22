@@ -55,7 +55,7 @@ export default function ItemList(
         setLoading(true);
         props.start_date.setHours(0, 0, 0, 1);
         props.end_date.setHours(23, 59, 59, 999);
-        supabase.from("spent").select()
+        supabase.from("spent").select('*, category_id(*)')
             .gte('created_at', props.start_date.toISOString())
             .lte('created_at', props.end_date.toISOString())
             .order('created_at', { ascending: false })
@@ -66,6 +66,7 @@ export default function ItemList(
                 setSpending(data as Spending[]);
                 setLoading(false);
             }
+            console.log(data);
         });
     }, [props]);
 
