@@ -1,6 +1,6 @@
 import { Category } from "@/utils/interfaces";
 import { createClient } from "@/utils/supabase/client";
-import { SupabaseClient, User } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 
 class SupabaseService {
@@ -11,11 +11,10 @@ class SupabaseService {
     }
 
     async getCategories()  {
-        const {data, error} = await this.supabase.from('categories').select('id, name, is_default, parent_id (id, name, is_default)')
+        const {data, error} = await this.supabase.from('categories').select('*');
         if (error) {
             console.error(error);
         }
-        console.log(data);
         return data || [];
     }
 

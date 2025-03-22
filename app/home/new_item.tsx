@@ -1,15 +1,24 @@
 'use client';
 import { Button } from "@/components/ui/button";
-import { CategorySelector } from "@/app/home/category-selector";
+import { CategorySelector } from "@/components/ui/category-selector";
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
+import { supabaseService } from "@/services/supabase";
+import { Category } from "@/utils/interfaces";
 import { createClient } from "@/utils/supabase/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+
 
 export default function NewSpentForm() {
     const supabase = createClient();
     const [isAdding, setIsAdding] = useState(false);
-    
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const handleCategoryChosen = (category_id: number | null) => {
+        console.log(category_id);
+        setSelectedCategory(category_id);
+    }
 
     const handleAddSpending = async () => {
         setIsAdding(true);
@@ -22,7 +31,7 @@ export default function NewSpentForm() {
             return;
         }
         const { data, error } = await supabase.from("spent").insert([
-            { item: new_item, price: new_price },
+            { item: new_item, price: new_price, category_id: selectedCategory },
         ]);
         if (error) {
             console.error(error);
@@ -33,6 +42,11 @@ export default function NewSpentForm() {
         (document.getElementById("new_price") as HTMLInputElement).value = '';
         setIsAdding(false);
       };
+    useEffect(() => {
+        supabaseService.getCategories().then((data) => {
+            setCategories(data);
+        });
+    }, []);
     return (
         <>
             <div className="w-full">
@@ -43,7 +57,7 @@ export default function NewSpentForm() {
                 <h2 className="font-bold text-xl sm:text-2xl ">How much was it?</h2>
                 <Input className="border-2" type="number" name="new_price" id="new_price" />
             </div>
-            <CategorySelector />
+            <CategorySelector categories={categories} onSelectionChange={handleCategoryChosen}  />
             
             <Button
                 disabled={isAdding}

@@ -3,7 +3,7 @@ export interface Spending {
     created_at: string;
     item: string;
     price: number;
-    category_id: Category | null;
+    category_id: number | null;
 }
 
 export interface Category {
@@ -12,5 +12,5 @@ export interface Category {
     name: string;
     is_default: boolean;
     user_id: string;
-    parent_id: Category | null;
+    parent_id: number | null;
 }

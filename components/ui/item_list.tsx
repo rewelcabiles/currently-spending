@@ -2,12 +2,17 @@
 import RandomStringWithReplacement from "@/components/random-string-replacer";
 import AnimatedList from "@/components/ui/animated-list";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spending } from "@/utils/interfaces";
+import { Category, Spending } from "@/utils/interfaces";
 import { createClient } from "@/utils/supabase/client";
 import { Dialog,  DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-
+import { Input } from "./input";
+import { Label } from "./label";
+import { CategorySelector } from "./category-selector";
+import { format, formatDistance, formatRelative, subDays } from 'date-fns' 
+import LoadingSpinner from "./spinner";
+import { supabaseService } from "@/services/supabase";
 
 
 const sarcasmMap = [
@@ -42,6 +47,8 @@ export default function ItemList(
     const [spending, setSpending] = useState<Spending[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedItem, setSelectedItem] = useState<Spending | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [categories, setCategories] = useState<Category[]>([]);
     
     const calculateTotal = () => {
         let total = 0;
@@ -51,11 +58,46 @@ export default function ItemList(
         return total;
     }
 
+    const handleCategorySelect = (new_category_id: number | null) => {
+        if (selectedItem === null) {
+            return;
+        }
+        setSelectedItem({...selectedItem, category_id: new_category_id});
+    }
+
+    const handleSaveChanges = () => {
+        setIsSaving(true);
+        console.log(selectedItem);
+        supabase.from("spent").update({
+            item: selectedItem?.item,
+            price: selectedItem?.price,
+            created_at: new Date(selectedItem?.created_at as string).toISOString(),
+            category_id: selectedItem?.category_id
+        }).eq('id', selectedItem?.id).select('*')
+        .then(({ data, error }) => {
+            console.log(data);
+            if (error) {
+                console.error(error);
+            } else {
+                const index = spending.findIndex((item) => item.id === selectedItem?.id);
+                spending[index] = data[0] as Spending;
+                setSelectedItem(null);
+            }
+            setIsSaving(false);
+        });
+    }
+
+    useEffect(() => {
+        supabaseService.getCategories().then((data) => {
+            setCategories(data);
+        });
+    }, []);
+
     useEffect(() => {
         setLoading(true);
         props.start_date.setHours(0, 0, 0, 1);
         props.end_date.setHours(23, 59, 59, 999);
-        supabase.from("spent").select('*, category_id(*)')
+        supabase.from("spent").select('*')
             .gte('created_at', props.start_date.toISOString())
             .lte('created_at', props.end_date.toISOString())
             .order('created_at', { ascending: false })
@@ -103,52 +145,96 @@ export default function ItemList(
                     spending.length > 0 &&
                     <>
                     <RandomStringWithReplacement className="text-lg" templates={sarcasmMap} replacement={'$'+String(calculateTotal())} marker={'%amount%'} />
-                    <AnimatedList items={spending} onItemClick={handleItemClick}/>
+                    <AnimatedList items={spending} onItemClick={handleItemClick} categories={categories} />
                     </>
                 }
             </div>
-            <Dialog open={selectedItem !== null} onOpenChange={(open) => {
-                    if (!open) {
-                        setSelectedItem(null);
-                    }
-                    }}>
-                    <DialogContent className={'w-3/4'}>
-                        <DialogHeader>
-                            <DialogTitle>
-                                <div className="text-xl font-semibold text-white">
-                                    {selectedItem?.item}
+            {
+                selectedItem !== null &&
+                <Dialog open={selectedItem !== null} onOpenChange={(open) => {
+                        if (!open) {
+                            setSelectedItem(null);
+                        }
+                        }}>
+                        <DialogContent className={'w-3/4'}>
+                            <DialogHeader>
+                                <DialogTitle>
+                                    Edit Item
+                                </DialogTitle>
+                                <DialogDescription>
+                                        Make changes to the item or delete it.
+                                </DialogDescription>
+                            </DialogHeader>
+                                <div className="flex flex-col gap-8">
+                                    <div className="flex flex-col gap-4">
+                                        <div>
+                                            <Label className="text-sm">Name</Label>
+                                            <Input type="text" className="input" value={selectedItem?.item} onChange={(e) => {
+                                                    setSelectedItem({...selectedItem, item: e.target.value});
+                                                }} 
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm">Amount</Label>
+                                            <Input type="number" className="input" value={selectedItem?.price} onChange={(e) => {
+                                                    setSelectedItem({...selectedItem, price: parseFloat(e.target.value)});   
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="datetime" className="text-right">
+                                                Date & Time
+                                            </Label>
+                                                <Input
+                                                id="datetime"
+                                                name="datetime"
+                                                type="datetime-local"
+                                                value={
+                                                    format(new Date(selectedItem?.created_at as string), 'yyyy-MM-dd\'T\'HH:mm')
+                                                }
+                                                onChange={(e) => {
+                                                    setSelectedItem({...selectedItem, created_at: e.target.value});
+                                                }}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-sm">Category</Label>
+                                            <CategorySelector
+                                                initialSelected={selectedItem?.category_id}
+                                                onSelectionChange={(category_id: number | null) => {
+                                                    handleCategorySelect(category_id);
+                                                }}
+                                                categories={categories} 
+                                                />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-4" >
+                                        <Button variant={'default'} size={'sm'} onClick={() => {handleSaveChanges();}}>
+                                            {
+                                                isSaving ? 
+                                                    <LoadingSpinner size="sm" />
+                                                 : 'Save'
+                                            }
+                                        </Button>
+                                        <Button variant={'destructive'} size={'sm'} onClick={() => {
+                                            supabase.from("spent").delete().eq('id', selectedItem?.id)
+                                            .then(({ data, error }) => {
+                                                if (error) {
+                                                    console.error(error);
+                                                } else {
+                                                    setSpending(spending.filter((item) => item.id !== selectedItem?.id));
+                                                    setSelectedItem(null);
+                                                }
+                                            });
+                                        }}>
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </div>
-                            </DialogTitle>
-                            <DialogDescription>
-                                    {
-                                    new Date(selectedItem?.created_at as string).toLocaleString()
-                                    } 
-                            </DialogDescription>
-                        </DialogHeader>
-                            <div className="flex flex-col gap-8">
-                                <div className="text-center">
-                                {
-                                    new Intl.NumberFormat("en-US", {
-                                        style: "currency",
-                                        currency: "USD",
-                                    }).format(Number(selectedItem?.price))
-                                }
-                                </div>
-                                <Button size={'sm'} onClick={() => {
-                                    supabase.from("spent").delete().eq('id', selectedItem?.id).then(({ data, error }) => {
-                                        if (error) {
-                                            console.error(error);
-                                        } else {
-                                            setSpending(spending.filter((item) => item.id !== selectedItem?.id));
-                                            setSelectedItem(null);
-                                        }
-                                    });
-                                }}>
-                                    Delete
-                                </Button>
-                            </div>
-                    </DialogContent>
-                </Dialog>
+                        </DialogContent>
+                    </Dialog>
+                }
         </>
     );
 }

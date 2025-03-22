@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { formatDistance } from "date-fns"
 import { cn } from "@/lib/utils"
-import { Spending } from "@/utils/interfaces"
+import { Category, Spending } from "@/utils/interfaces"
 
 export interface ListItem {
   id: number
@@ -17,6 +17,7 @@ export interface ListItem {
 interface AnimatedListProps {
   items: Spending[]
   className?: string
+  categories?: Category[]
   formatCurrencyAction?: (amount: number) => string
   onItemClick?: (item: Spending) => void
 }
@@ -24,6 +25,7 @@ interface AnimatedListProps {
 export default function AnimatedList({
   items,
   className,
+  categories,
   formatCurrencyAction = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -59,18 +61,19 @@ export default function AnimatedList({
               )}
             >
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground text-end">
                   {formatDistance(item.created_at, new Date(), { addSuffix: true })}
                 </span>
                 <span className="font-medium">{item.item}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground text-end">
                   {item.category_id ?
-                    item.category_id.name : "Uncategorized"
+                    categories?.find((cat) => cat.id === item.category_id)?.name :
+                    "Uncategorized"
                   }
                 </span>
-                <span className="font-medium">{formatCurrencyAction(Math.abs(item.price))}</span>
+                <span className="font-medium text-end">{formatCurrencyAction(Math.abs(item.price))}</span>
               </div>
             </div>
           </motion.div>
